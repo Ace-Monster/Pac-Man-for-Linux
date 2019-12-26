@@ -64,35 +64,35 @@ void *connectread(void *data) {
 	send(p->fd[id], "start", p->size, 0);
 	sleep(1);
 	int t = 0;
-	p->intToChar(p->maze.GetCol(), t, p->buf[5]);
-	p->buf[5][t++] = '|';
-	p->intToChar(p->maze.GetRow(), t, p->buf[5]);
-	p->buf[5][t++] = '|';
+	p->intToChar(p->maze.GetCol(), t, p->buf[5+id]);
+	p->buf[5+id][t++] = '|';
+	p->intToChar(p->maze.GetRow(), t, p->buf[5+id]);
+	p->buf[5+id][t++] = '|';
 	for (auto i : *(p->maze).GetMap()) {
-		p->buf[5][t++] = (int)i + '0';
+		p->buf[5+id][t++] = (int)i + '0';
 	}
-	p->buf[5][t++] = '|';
-	p->intToChar(p->maze.portalA, t, p->buf[5]);
-	p->buf[5][t++] = '|';
-	p->intToChar(p->maze.portalB, t, p->buf[5]);
-	send(p->fd[id], p->buf[5], t, 0);
+	p->buf[5+id][t++] = '|';
+	p->intToChar(p->maze.portalA, t, p->buf[5+id]);
+	p->buf[5+id][t++] = '|';
+	p->intToChar(p->maze.portalB, t, p->buf[5+id]);
+	send(p->fd[id], p->buf[5+id], t, 0);
 	sleep(1);
 	while (p->gamestatus == GAMESTATUS::RUNNING) {
-		int l = p->changeTochar(&(p->player[id]), p->buf[5]);
-		p->buf[5][l++] = '=';
+		int l = p->changeTochar(&(p->player[id]), p->buf[5+id]);
+		p->buf[5+id][l++] = '=';
 		for (int i = 0;i < p->size;i++) {
 			if(i == id) continue;
 			int len = p->changeTochar(&(p->player[i]), p->buf[id]);
-			for (int j = 2;j < len;j++) p->buf[5][l++] = p->buf[id][j];
-			p->buf[5][l++] = '=';
+			for (int j = 2;j < len;j++) p->buf[5+id][l++] = p->buf[id][j];
+			p->buf[5+id][l++] = '=';
 		}
 		vector<int> Beans(*(p->maze.GetBeans()));
 		for(auto i : Beans){
-			p->intToChar(i, l, p->buf[5]);
-			p->buf[5][l++] = '|';
+			p->intToChar(i, l, p->buf[5+id]);
+			p->buf[5+id][l++] = '|';
 		}
-		p->buf[5][--l] = 0;
-		send(p->fd[id], p->buf[5], l, 0);
+		p->buf[5+id][--l] = 0;
+		send(p->fd[id], p->buf[5+id], l, 0);
 		
 		l = recv(p->fd[id], p->buf[id], 99999, 0);
 		p->buf[id][l] = 0;
