@@ -281,8 +281,6 @@ Monster::~Monster() {
 }
 
 Monster::Monster(Maze* maze, char icon) : maze(maze), icon(icon), dir(Direction::South) {
-	int pos = (new MazeGenerator(0, 0))->GetPlayerPos(maze);
-	x = pos % maze->GetCol(), y = pos / maze->GetCol();
 }
 
 void Monster::DisplayMaze() {
@@ -468,8 +466,6 @@ Player::~Player() {
 }
 
 Player::Player(Maze* maze, char icon) : maze(maze), icon(icon), alive(true), dir(Direction::South), points(0) {
-	int pos = (new MazeGenerator(0, 0))->GetPlayerPos(maze);
-	x = pos % maze->GetCol(), y = pos / maze->GetCol();
 }
 
 void Player::DisplayMaze() {
@@ -712,17 +708,30 @@ int Player::communicate(char* msg) {
 		dir = d[0];
 		maze->GetPlayers()->push_back(this);
 		for (int i = 1; i < 4; i++) {
-			Player *np = new Player(maze, ic[i]);
-			np->alive = st[i];
-			np->points = pts[i];
-			np->x = pos[i] % maze->GetCol(), np->y = pos[i] / maze->GetCol();
-			np->dir = d[i];
-			maze->GetPlayers()->push_back(np);
+			if (ic[i] != '0') {
+				Player *np = new Player(maze, ic[i]);
+				np->alive = st[i];
+				np->points = pts[i];
+				np->x = pos[i] % maze->GetCol(), np->y = pos[i] / maze->GetCol();
+				np->dir = d[i];
+				maze->GetPlayers()->push_back(np);
+			}
+			else {
+				Monster *np = new Monster(maze, ic[i]);
+				np->SetX(pos[i] % maze->GetCol()), np->SetY(pos[i] / maze->GetCol());
+				np->SetDir(d[i]);
+				maze->SetMonster(np);
+			}
 		}
 	}
 	else {
 		for (int i = 1; i < 4; i++) {
-			for (int j = 0; j < (int)maze->GetPlayers()->size(); j++) {
+			if (ic[i] == '0') {
+				Monster *now = maze->GetMonster();
+				now->SetX(pos[i] % maze->GetCol()), now->SetY(pos[i] / maze->GetCol());
+				now->SetDir(d[i]);
+			}
+			else for (int j = 0; j < (int)maze->GetPlayers()->size(); j++) {
 				Player* now = maze->GetPlayers()->at(j);
 				if (ic[i] == now->GetIcon()) {
 					now->alive = st[i];
@@ -754,11 +763,12 @@ int Player::communicate(char* msg) {
 	if (!flag) msg[t++] = '0';
 	msg[t++] = '|';
 	flag = 0;
+	int xpos = x + y * maze->GetCol();
 	for (int i = 100000; i > 0; i /= 10) {
-		if (flag == 0 && x / i == 0) continue;
+		if (flag == 0 && xpos / i == 0) continue;
 		flag = 1;
-		msg[t++] = x / i + '0';
-		x %= i;
+		msg[t++] = xpos / i + '0';
+		xpos %= i;
 	}
 	if (!flag) msg[t++] = '0';
 	msg[t++] = '|';
@@ -776,6 +786,10 @@ void Player::SetPoints(int points) {
 }
 
 void Player::SetDir(Direction dir) {
+	this->dir = dir;
+}
+
+void Monster::SetDir(Direction dir) {
 	this->dir = dir;
 }
 
@@ -861,21 +875,15 @@ int Monster::communicate(char* msg) {
 	int t = 0;
 	msg[t++] = 0 + '0';
 	msg[t++] = '|';
-	int flag = 0;
-	for (int points = 0, i = 1000; i > 0; i /= 10) {
-		if (flag == 0 && points / i == 0) continue;
-		flag = 1;
-		msg[t++] = points / i + '0';
-		points %= i;
-	}
-	if (!flag) msg[t++] = '0';
+	msg[t++] = '0';
 	msg[t++] = '|';
-	flag = 0;
+	int flag = 0;
+	int xpos = x + y * maze->GetCol();
 	for (int i = 100000; i > 0; i /= 10) {
-		if (flag == 0 && x / i == 0) continue;
+		if (flag == 0 && xpos / i == 0) continue;
 		flag = 1;
-		msg[t++] = x / i + '0';
-		x %= i;
+		msg[t++] = xpos / i + '0';
+		xpos %= i;
 	}
 	if (!flag) msg[t++] = '0';
 	msg[t++] = '|';

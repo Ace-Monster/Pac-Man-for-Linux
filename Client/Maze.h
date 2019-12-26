@@ -15,6 +15,7 @@ public:
 	char GetIcon() const;
 	void SetX(int x);
 	void SetY(int y);
+	void SetDir(Direction dir);
 	void MoveUp();
 	void MoveDown();
 	void MoveRight();

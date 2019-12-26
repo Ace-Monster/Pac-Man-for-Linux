@@ -11,7 +11,7 @@
 #include <pthread.h>
 #include "Running.h"
 int sockfd;
-int post = 2223;
+int post = 2224;
 Running running;
 
 void *run(void *p) {
@@ -25,9 +25,15 @@ void *run(void *p) {
 	}
 }
 
-int main(){
+int main(int argc, char *argv[]){
 	//running.display();
 	//return 0;
+	if(argc >= 2){
+		post = 0;
+		int l = strlen(argv[1]);
+		for(int i = 0;i < l;i++)
+			post = post*10 + argv[1][i]-'0';
+	}
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(post);

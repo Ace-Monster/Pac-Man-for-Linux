@@ -33,7 +33,10 @@ void *connectread(void *t) {
 	p->buf[len] = 0;
 	if (p->buf[2] == '0') {
 		pm = 1;
+		monster = Monster(&maze, '0');		
 		len = monster.communicate(p->buf);
+		p->buf[len] = 0;
+		printf("%s\n", p->buf);
 		send(p->sockfd, p->buf, len, 0);
 		flag = 1;
 		while (true) {
@@ -47,6 +50,7 @@ void *connectread(void *t) {
 	}
 	else {
 		pm = 0;
+		player = Player(&maze, p->buf[2]);
 		len = player.communicate(p->buf);
 		send(p->sockfd, p->buf, len, 0);
 		flag = 1;
@@ -64,7 +68,7 @@ void *connectread(void *t) {
 	pthread_exit(NULL);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 	/*
 	auto maze = pGenerator->Generate();
 	Monster m(&maze, '0');
@@ -74,11 +78,17 @@ int main() {
 	p1.communicate("0|1|1|120|333|1=1|1|120|333|1=1|1|120|333|1=1|1|120|333|1=12|231|333");
 	*/
 	Commun commun;
+	if(argc >= 2){
+		int post = 0;
+		int l = strlen(argv[1]);
+		for(int i = 0;i < l;i++)
+			post = post*10 + argv[1][i]-'0';
+		commun.setPost(post);	
+	}
 	if (!commun.createConnect()) return 0;
 	printf("Connect succsee!\n");
 	pthread_t pthread;
 	pthread_create(&pthread, NULL, connectread, (void *)&commun);
-	pthread_join(pthread, NULL);
 	cout << "LOADING...\n";
 	while (!flag);
 	while (true) {
@@ -123,4 +133,5 @@ int main() {
 		clrscr();
 	#endif
 	}
+	pthread_join(pthread, NULL);
 }

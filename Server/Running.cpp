@@ -33,6 +33,7 @@ int Running::changeTochar(Player *p, char s[]) {
 	s[t++] = '|';
 	intToChar(p->points, t, s);
 	s[t++] = '|';
+	//printf("%d\n", p->x);
 	intToChar(p->x, t, s);
 	s[t++] = '|';
 	s[t++] = p->y + '0';
@@ -56,6 +57,7 @@ void Running::changeToplayer(Player *p, char s[]) {
 	return;
 }
 
+int ttt = 0;
 void *connectread(void *data) {
 	int id = ((thread_data *)data)->id;
 	Running *p = ((thread_data *)data)->p;
@@ -79,6 +81,8 @@ void *connectread(void *data) {
 	sleep(1);
 	while (p->gamestatus == GAMESTATUS::RUNNING) {
 		int l = p->changeTochar(&(p->player[id]), p->buf[5+id]);
+		p->buf[5+id][l] = 0;		
+		//if(ttt < 5) printf("%s\n", p->buf[5+id]);
 		p->buf[5+id][l++] = '=';
 		for (int i = 0;i < p->size;i++) {
 			if(i == id) continue;
@@ -96,9 +100,9 @@ void *connectread(void *data) {
 		
 		l = recv(p->fd[id], p->buf[id], 99999, 0);
 		p->buf[id][l] = 0;
-		printf("%s\n", p->buf[id]);
+		//printf("%s\n", p->buf[id]);
 		p->changeToplayer(&(p->player[id]), p->buf[id]);
-		sleep(1);
+		usleep(100);
 	}
 	char ans[2];
 	ans[0] = p->gamestatus + '0';
@@ -111,6 +115,7 @@ void Running::add(int tfd) {
 	int id = size;
 	fd[id] = tfd;
 	player[id].init(size, mazeGenerator->GetPlayerPos(&maze));
+	//printf("%d\n", player[id].x);
 	maze.addPlayerPos(player[id].x);
 	thread_data *t = new thread_data(id, this);
 	pthread_create(&thread_array[id], NULL, connectread, (void *)t);
