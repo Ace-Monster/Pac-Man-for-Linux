@@ -67,7 +67,7 @@ private:
 
 				if (maze.GetCell(x, y) == Tile::DirtFloor || maze.GetCell(x, y) == Tile::Corridor) {
 					if (!maze.IsBeanAt(x, y)) {
-						maze.GetBeans()->push_back(x + y * m_nXSize);
+						maze.GetBeans()->push_back({x + y * m_nXSize, 1});
 						break;
 					}
 				}

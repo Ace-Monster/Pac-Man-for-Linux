@@ -33,7 +33,6 @@ int Running::changeTochar(Player *p, char s[]) {
 	s[t++] = '|';
 	intToChar(p->points, t, s);
 	s[t++] = '|';
-	//printf("%d\n", p->x);
 	intToChar(p->x, t, s);
 	s[t++] = '|';
 	s[t++] = p->y + '0';
@@ -81,8 +80,6 @@ void *connectread(void *data) {
 	sleep(1);
 	while (p->gamestatus == GAMESTATUS::RUNNING) {
 		int l = p->changeTochar(&(p->player[id]), p->buf[5+id]);
-		p->buf[5+id][l] = 0;		
-		//if(ttt < 5) printf("%s\n", p->buf[5+id]);
 		p->buf[5+id][l++] = '=';
 		for (int i = 0;i < p->size;i++) {
 			if(i == id) continue;
@@ -90,9 +87,10 @@ void *connectread(void *data) {
 			for (int j = 2;j < len;j++) p->buf[5+id][l++] = p->buf[id][j];
 			p->buf[5+id][l++] = '=';
 		}
-		vector<int> Beans(*(p->maze.GetBeans()));
+		vector<pair<int, int> > Beans(*(p->maze.GetBeans()));
 		for(auto i : Beans){
-			p->intToChar(i, l, p->buf[5+id]);
+			if(i.second == 0) continue;
+			p->intToChar(i.first, l, p->buf[5+id]);
 			p->buf[5+id][l++] = '|';
 		}
 		p->buf[5+id][--l] = 0;
@@ -100,8 +98,10 @@ void *connectread(void *data) {
 		
 		l = recv(p->fd[id], p->buf[id], 99999, 0);
 		p->buf[id][l] = 0;
-		//printf("%s\n", p->buf[id]);
 		p->changeToplayer(&(p->player[id]), p->buf[id]);
+		for(auto i : *(p->maze.GetBeans())){
+			if(i.first == p->player[id].x) i.second = 0;
+		}
 		usleep(100);
 	}
 	char ans[2];
@@ -115,7 +115,6 @@ void Running::add(int tfd) {
 	int id = size;
 	fd[id] = tfd;
 	player[id].init(size, mazeGenerator->GetPlayerPos(&maze));
-	//printf("%d\n", player[id].x);
 	maze.addPlayerPos(player[id].x);
 	thread_data *t = new thread_data(id, this);
 	pthread_create(&thread_array[id], NULL, connectread, (void *)t);
@@ -123,7 +122,6 @@ void Running::add(int tfd) {
 }
 
 void Running::gamestart() {
-	//maze = mazeGenerator->Generate();
 	gamestatus = GAMESTATUS::RUNNING;
 	while (gamestatus == GAMESTATUS::RUNNING) {
 		int d = 0, s = 0;
@@ -131,7 +129,7 @@ void Running::gamestart() {
 			if (player[i].status == STATUS::DEAD) d++;
 			s += player[i].points;
 		}
-		if (s == maze.GetBeans()->size()) {//s == map.point
+		if (s == maze.GetBeans()->size()) {
 			gamestatus = GAMESTATUS::WIN;
 		}
 		if (d == 3) {

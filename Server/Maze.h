@@ -23,7 +23,7 @@ public:
 	bool IsPlayerAt(int x, int y) const;
 	void addPlayerPos(int pos);
 	vector<Tile>* GetMap();
-	vector<int>* GetBeans();
+	vector<pair<int, int> >* GetBeans();
 	int portalA, portalB;
 	~Maze();
 	void display() {
@@ -37,7 +37,7 @@ public:
 private:
 	int row, col;
 	vector<Tile> mazeMap;
-	vector<int> beans;
+	vector<pair<int, int> > beans;
 	vector<int> players;
 };
 

@@ -127,14 +127,14 @@ vector<Tile>* Maze::GetMap() {
 	return &mazeMap;
 }
 
-vector<int>* Maze::GetBeans() {
+vector<pair<int, int> >* Maze::GetBeans() {
 	return &beans;
 }
 
 bool Maze::IsBeanAt(int x, int y) const {
 	int pos = x + y * col;
 	for (int i = 0; i < (int)beans.size(); i++) {
-		if (pos == beans[i]) {
+		if (pos == beans[i].first) {
 			return true;
 		}
 	}
