@@ -106,6 +106,7 @@ public:
 	void display();
 	void ShowBoard();
 	void GameOver(bool win);
+	int winner = 0;
 private:
 	int row, col;
 	vector<Tile> mazeMap;

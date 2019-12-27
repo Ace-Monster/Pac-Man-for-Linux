@@ -58,6 +58,7 @@ void *connectread(void *t) {
 			len = recv(p->sockfd, p->buf, 99999, 0);//player
 			p->buf[len] = 0;
 			//printf("%s\n", p->buf);
+			//sleep(3);
 			len = player.communicate(p->buf);
 			if (len == -1) break;
 			send(p->sockfd, p->buf, len, 0);
@@ -65,6 +66,36 @@ void *connectread(void *t) {
 	}
 	//gameover
 	close(p->sockfd);
+	pthread_exit(NULL);
+}
+
+void *winflush(void* p) {
+	while (!maze.winner) {
+		usleep(200000);
+	#ifdef __linux__
+		printf("\033c");
+	#endif
+	#ifdef _WIN32
+		clrscr();
+	#endif
+		if (pm) monster.UpdateView();
+		else player.UpdateView();
+		if (pm) monster.DisplayMaze();
+		else player.DisplayMaze();
+		maze.ShowBoard();
+	}
+	#ifdef __linux__
+		printf("\033c");
+	#endif
+	#ifdef _WIN32
+		clrscr();
+	#endif
+	if (pm) monster.UpdateView();
+	else player.UpdateView();
+	if (pm) monster.DisplayMaze();
+	else player.DisplayMaze();
+	if (maze.winner == 2) maze.GameOver(1);
+	else maze.GameOver(0);
 	pthread_exit(NULL);
 }
 
@@ -91,7 +122,12 @@ int main(int argc, char *argv[]) {
 	pthread_create(&pthread, NULL, connectread, (void *)&commun);
 	cout << "LOADING...\n";
 	while (!flag);
+	pthread_t pthreadwin;
+	pthread_create(&pthreadwin, NULL, winflush, NULL);
 	while (true) {
+		if (maze.winner) {
+			break;
+		}
 		if (pm) monster.UpdateView();
 		else player.UpdateView();
 		if (pm) monster.DisplayMaze();
@@ -134,4 +170,5 @@ int main(int argc, char *argv[]) {
 	#endif
 	}
 	pthread_join(pthread, NULL);
+	pthread_join(pthreadwin, NULL);
 }

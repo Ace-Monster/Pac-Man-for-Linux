@@ -94,16 +94,21 @@ void *connectread(void *data) {
 			p->buf[5+id][l++] = '|';
 		}
 		p->buf[5+id][--l] = 0;
+		//if(id == 1) printf("%d %d\n", id, p->player[id].points);
 		send(p->fd[id], p->buf[5+id], l, 0);
 		
 		l = recv(p->fd[id], p->buf[id], 99999, 0);
 		p->buf[id][l] = 0;
 		p->changeToplayer(&(p->player[id]), p->buf[id]);
-		for(auto i : *(p->maze.GetBeans())){
-			if(i.first == p->player[id].x) {
-				i.second = 0;
-				p->player[id].points++;
+		if(id > 0){
+			for(auto &i : *(p->maze.GetBeans())){
+				if(i.first == p->player[id].x) {
+					if(i.second == 1) p->player[id].points++;
+					i.second = 0;
+				}
 			}
+			if(p->player[id].x == p->player[0].x) 
+				p->player[id].status = STATUS::DEAD;	
 		}
 		usleep(100);
 	}
@@ -133,9 +138,11 @@ void Running::gamestart() {
 			s += player[i].points;
 		}
 		if (s == maze.GetBeans()->size()) {
+			printf("P win\n");
 			gamestatus = GAMESTATUS::WIN;
 		}
 		if (d == 3) {
+			printf("M win\n");
 			gamestatus = GAMESTATUS::LOSE;
 		}
 	}

@@ -246,8 +246,13 @@ void Maze::ShowBoard() {
 #endif
 	cout << endl << "┌───────────────────────┐";
 	cout << endl << "│    【Score Board】    │";
-	for (int i = 0; i < (int)players.size(); i++) {
-		cout << endl << "│    Player (" << i + 1 << ") :  " << players[i]->GetPoints() << "\t│";
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			if (players[j]->GetIcon() == i + 1 + '0') {
+				cout << endl << "│    Player (" << i + 1 << ") :  " << players[j]->GetPoints() << "\t│";
+				break;
+			}
+		}
 	}
 	cout << endl << "└───────────────────────┘" << endl;
 #ifdef __linux__
@@ -259,6 +264,7 @@ void Maze::ShowBoard() {
 }
 
 void Maze::GameOver(bool win) {
+	winner = win ? 2 : 3;
 #ifdef __linux__
 	printf("\033[31;47;1m");
 #endif
@@ -309,7 +315,9 @@ void Monster::DisplayMaze() {
 				#ifdef _WIN32 
 					SetConsoleColor(FOREGROUND_RED | BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE);
 				#endif
-					putchar(maze->GetPlayer(j, i)->GetIcon());
+					if (maze->GetPlayer(j, i)->IsAlive())
+						putchar(maze->GetPlayer(j, i)->GetIcon());
+					else putchar('X');
 				}
 				else if (maze->IsBeanAt(j, i)) {
 				#ifdef __linux__
@@ -365,7 +373,7 @@ void Monster::MoveUp() {
 	else if (maze->IsAbleToMove(x, y - 1)) {
 		y--;
 		maze->transport(this);
-		maze->EatPlayers(this);
+		//maze->EatPlayers(this);
 	}
 }
 
@@ -376,7 +384,7 @@ void Monster::MoveDown() {
 	else if (maze->IsAbleToMove(x, y + 1)) {
 		y++;
 		maze->transport(this);
-		maze->EatPlayers(this);
+		//maze->EatPlayers(this);
 	}
 }
 
@@ -387,7 +395,7 @@ void Monster::MoveRight() {
 	else if (maze->IsAbleToMove(x + 1, y)) {
 		x++;
 		maze->transport(this);
-		maze->EatPlayers(this);
+		//maze->EatPlayers(this);
 	}
 }
 
@@ -398,7 +406,7 @@ void Monster::MoveLeft() {
 	else if (maze->IsAbleToMove(x - 1, y)) {
 		x--;
 		maze->transport(this);
-		maze->EatPlayers(this);
+		//maze->EatPlayers(this);
 	}
 }
 
@@ -494,7 +502,9 @@ void Player::DisplayMaze() {
 				#ifdef _WIN32 
 					SetConsoleColor(FOREGROUND_RED | BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE);
 				#endif
-					putchar(maze->GetPlayer(j, i)->GetIcon());
+					if (maze->GetPlayer(j, i)->IsAlive())
+						putchar(maze->GetPlayer(j, i)->GetIcon());
+					else putchar('X');
 				}
 				else if (maze->IsBeanAt(j, i)) {
 				#ifdef __linux__
@@ -567,8 +577,8 @@ void Player::MoveUp() {
 	else if (maze->IsAbleToMove(x, y - 1) && (!maze->IsPlayerAt(x, y - 1) || !maze->GetPlayer(x, y - 1)->IsAlive())) {
 		y--;
 		maze->transport(this);
-		maze->EatBeans(this);
-		maze->EatPlayers(maze->GetMonster());
+		//maze->EatBeans(this);
+		//maze->EatPlayers(maze->GetMonster());
 	}
 }
 
@@ -579,8 +589,8 @@ void Player::MoveDown() {
 	else if (maze->IsAbleToMove(x, y + 1) && (!maze->IsPlayerAt(x, y + 1) || !maze->GetPlayer(x, y + 1)->IsAlive())) {
 		y++;
 		maze->transport(this);
-		maze->EatBeans(this);
-		maze->EatPlayers(maze->GetMonster());
+		//maze->EatBeans(this);
+		//maze->EatPlayers(maze->GetMonster());
 	}
 }
 
@@ -591,8 +601,8 @@ void Player::MoveRight() {
 	else if (maze->IsAbleToMove(x + 1, y) && (!maze->IsPlayerAt(x + 1, y) || !maze->GetPlayer(x + 1, y)->IsAlive())) {
 		x++;
 		maze->transport(this);
-		maze->EatBeans(this);
-		maze->EatPlayers(maze->GetMonster());
+		//maze->EatBeans(this);
+		//maze->EatPlayers(maze->GetMonster());
 	}
 }
 
@@ -603,8 +613,8 @@ void Player::MoveLeft() {
 	else if (maze->IsAbleToMove(x - 1, y) && (!maze->IsPlayerAt(x - 1, y) || !maze->GetPlayer(x - 1, y)->IsAlive())) {
 		x--;
 		maze->transport(this);
-		maze->EatBeans(this);
-		maze->EatPlayers(maze->GetMonster());
+		//maze->EatBeans(this);
+		//maze->EatPlayers(maze->GetMonster());
 	}
 }
 
@@ -671,7 +681,9 @@ void Player::UpdateView() {
 int Player::communicate(char* msg) {
 	string str(msg);
 	maze->GetBeans()->clear();
+	//printf("%s\n", msg);
 	if (str[0] != '0') {
+		//sleep(10);
 #ifdef __linux__
 		printf("\033c");
 #endif
@@ -679,13 +691,13 @@ int Player::communicate(char* msg) {
 		clrscr();
 #endif
 		DisplayMaze();
-		if (str[0] == '1') maze->GameOver(1);
+		if (str[0] == '2') maze->GameOver(1);
 		else maze->GameOver(0);
 #ifdef __linux__
-		sleep(5);
+		sleep(10);
 #endif
 #ifdef _WIN32
-		Sleep(5000);
+		Sleep(10000);
 #endif
 
 		return -1;
@@ -725,6 +737,8 @@ int Player::communicate(char* msg) {
 		}
 	}
 	else {
+		alive = st[0];
+		points = pts[0];
 		for (int i = 1; i < 4; i++) {
 			if (ic[i] == '0') {
 				Monster *now = maze->GetMonster();
@@ -753,12 +767,12 @@ int Player::communicate(char* msg) {
 	int t = 0;
 	msg[t++] = alive + '0';
 	msg[t++] = '|';
-	int flag = 0;
+	int flag = 0, tps = points;
 	for (int i = 1000; i > 0; i /= 10) {
-		if (flag == 0 && points / i == 0) continue;
+		if (flag == 0 && tps / i == 0) continue;
 		flag = 1;
-		msg[t++] = points / i + '0';
-		points %= i;
+		msg[t++] = tps / i + '0';
+		tps %= i;
 	}
 	if (!flag) msg[t++] = '0';
 	msg[t++] = '|';
@@ -817,13 +831,13 @@ int Monster::communicate(char* msg) {
 		clrscr();
 #endif
 		DisplayMaze();
-		if (str[0] == '1') maze->GameOver(1);
+		if (str[0] == '2') maze->GameOver(1);
 		else maze->GameOver(0);
 #ifdef __linux__
-		sleep(5);
+		sleep(10);
 #endif
 #ifdef _WIN32
-		Sleep(5000);
+		Sleep(10000);
 #endif
 		return -1;
 	}

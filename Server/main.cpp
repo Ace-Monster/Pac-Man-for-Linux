@@ -16,7 +16,7 @@ Running running;
 
 void *run(void *p) {
 	Running *r = (Running *)p;
-	r->mazeGenerator = new MazeGenerator(50, 20);
+	r->mazeGenerator = new MazeGenerator(30, 20);
 	while (true) {
 		r->maze = r->mazeGenerator->Generate();
 		while (r->size < 4);						//等待玩家到齐
