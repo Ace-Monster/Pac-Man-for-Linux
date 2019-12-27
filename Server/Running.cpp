@@ -100,7 +100,10 @@ void *connectread(void *data) {
 		p->buf[id][l] = 0;
 		p->changeToplayer(&(p->player[id]), p->buf[id]);
 		for(auto i : *(p->maze.GetBeans())){
-			if(i.first == p->player[id].x) i.second = 0;
+			if(i.first == p->player[id].x) {
+				i.second = 0;
+				p->player[id].points++;
+			}
 		}
 		usleep(100);
 	}
